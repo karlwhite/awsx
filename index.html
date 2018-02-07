@@ -1,0 +1,149 @@
+<html>
+	<head>
+		<title>AWSX</title>
+		<link rel="stylesheet" href="css/chrome-tabs.css">
+		<link rel="stylesheet" href="css/chrome-tabs-dark-theme.css">
+		<!--<link rel="stylesheet" href="node_modules/electron-tabs/electron-tabs.css">
+		<link rel="stylesheet" href="node_modules/dist/dragula.css">-->
+		<script>oldModule = module;module = {};</script>
+		<script src="http://code.jquery.com/jquery-3.3.1.min.js"></script>
+		<script src="https://unpkg.com/draggabilly@2/dist/draggabilly.pkgd.js"></script>
+		<script src="js/chrome-tabs.js"></script>
+		<script>module = oldModule;</script>
+		<!--<script src="js/draggabillity.js"></script>-->
+		<style>
+			html, body { margin:0;padding:0; }
+			.chrome-tabs-new-tab { position:fixed;top:0;right:0;width:42px;height:42px;cursor:pointer;overflow:hidden;text-align:center;color:white;font-size:22px;line-height:36px; }
+			.content-container { position:fixed;top:42px;left:0;right:0;bottom:0;background-color:white; }
+			.content-container>webview { position:absolute;left:0;top:0;right:0;bottom:0;border:none; }
+			.content-container>webview.hide { visibility:hidden }
+		</style>
+	</head>
+	<body>
+		<div class="chrome-tabs chrome-tabs-dark-theme">
+			<div class="chrome-tabs-content"></div>
+			<div class="chrome-tabs-new-tab">+</div>
+			<div class="chrome-tabs-bottom-bar"></div>
+		</div>
+		<div class="content-container">
+			
+		</div>
+		
+		<!--<div class="etabs-tabgroup">
+			<div class="etabs-tabs"></div>
+			<div class="etabs-buttons"></div>
+		</div>
+		<div class="etabs-views"></div>-->
+
+		<script>
+			function guid() {
+				function s4() {
+					return Math.floor((1 + Math.random()) * 0x10000)
+						.toString(16)
+						.substring(1);
+				}
+				return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+					s4() + '-' + s4() + s4() + s4();
+			}
+
+			window.addEventListener('load', function(){
+				var windowUid = guid();
+				var el = document.querySelector('.chrome-tabs');
+				var chromeTabs = new ChromeTabs();
+				chromeTabs.init(el, { tabOverlapDistance: 14, minWidth: 45, maxWidth: 243 });
+
+				el.addEventListener('activeTabChange', ({ detail }) => {
+					console.log('Active tab changed', detail.tabEl)
+					$('.content-container').children().addClass('hide');
+					$(detail.tabEl.webview).removeClass('hide');
+				});
+				el.addEventListener('tabAdd', ({ detail }) => {
+					console.log('Tab added', detail.tabEl)
+					detail.tabEl.webview = document.createElement('webview');
+					//detail.tabEl.webview.setAttribute('name', 'aws-page-disable-x-frame-options');
+					//detail.tabEl.webview.setAttribute('sandbox', 'allow-scripts allow-same-origin');
+					detail.tabEl.webview.partition = windowUid;
+					detail.tabEl.webview.disablewebsecurity = true;
+					detail.tabEl.webview.webpreferences = "allowRunningInsecureContent";
+					detail.tabEl.webview.setAttribute('src', "https://signin.aws.amazon.com/signin?client_id=arn%3Aaws%3Aiam%3A%3A015428540659%3Auser%2Fhomepage&redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fconsole%2Fhome%3Fstate%3DhashArgs%2523%26isauthcode%3Dtrue&page=resolve");
+					detail.tabEl.webview.style.width = '100%';
+					detail.tabEl.webview.style.height = '100%';
+					detail.tabEl.webview.addEventListener('page-title-updated', (e) => {
+						console.log('Guest page title: '+e.title);
+						detail.tabEl.querySelector('.chrome-tab-title').textContent = e.title;
+					});
+					$('.content-container').children().addClass('hide');
+					$(detail.tabEl.webview).removeClass('hide');
+					$('.content-container').append(detail.tabEl.webview);
+				});
+				el.addEventListener('tabRemove', ({ detail }) => {
+					console.log('Tab removed', detail.tabEl);
+					$('.content-container').empty();
+					delete( detail.tabEl.webview );
+					detail.tabEl.webview = null;
+				});
+
+				$('.chrome-tabs-new-tab').click(function() {
+					chromeTabs.addTab({
+						title: 'AWS',
+						favicon: 'images/aws.png',
+					});
+				});
+
+				chromeTabs.addTab({
+					title: 'AWS',
+					favicon: 'images/aws.png',
+				});
+
+				// Keyboard shortcuts
+				document.onkeyup=function(e){
+					var e = e || window.event; // for IE to cover IEs window event-object
+					if(e.altKey && e.which == 84) {
+						chromeTabs.addTab({
+							title: 'AWS',
+							favicon: 'images/aws.png',
+						});
+						return false;
+					}
+				}
+			});
+
+			// chromeTabs.removeTab(el.querySelector('.chrome-tab-current'));
+
+
+				/*const TabGroup = require('electron-tabs');
+				const dragula = require("dragula");
+				//require = function() { return {}; };
+				let tabGroup = new TabGroup({
+					ready: function (tabGroup) {
+						dragula([tabGroup.tabContainer], {
+							direction: "horizontal"
+						});
+					},
+					newTab: {
+						title: '',
+						src: 'https://signin.aws.amazon.com/signin?client_id=arn%3Aaws%3Aiam%3A%3A015428540659%3Auser%2Fhomepage&redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fconsole%2Fhome%3Fstate%3DhashArgs%2523%26isauthcode%3Dtrue&page=resolve',
+						closable: true,
+						iconURL: 'images/aws.png',
+						visible: true,
+						active: true,
+					}
+				});
+				tabGroup.addTab({
+						title: 'AWS',
+						src: 'https://signin.aws.amazon.com/signin?client_id=arn%3Aaws%3Aiam%3A%3A015428540659%3Auser%2Fhomepage&redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fconsole%2Fhome%3Fstate%3DhashArgs%2523%26isauthcode%3Dtrue&page=resolve',
+						closable: false,
+						iconURL: 'images/aws.png',
+						visible: true,
+						active: true,
+				});*/
+				/*tabGroup.addTab({
+						title: "Electron",
+						src: "http://electron.atom.io",
+						visible: true,
+						active: true
+				});*/
+		</script>
+		
+	</body>
+</html>
