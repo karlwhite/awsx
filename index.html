@@ -13,136 +13,234 @@
 		<!--<script src="js/draggabillity.js"></script>-->
 		<style>
 			html, body { margin:0;padding:0; }
-			.chrome-tabs-new-tab { position:fixed;top:0;right:0;width:42px;height:42px;cursor:pointer;overflow:hidden;text-align:center;color:white;font-size:22px;line-height:36px; }
-			.content-container { position:fixed;top:42px;left:0;right:0;bottom:0;background-color:white; }
+			h1, h2, h3, h4, h5, h6, p, button { font-family:'Helvetica-Neue', Arial, sans-serif; }
+			.sidebar { position:absolute;top:0;left:0;width:64px;bottom:0;background-color:#232f3e;padding:10px 0; }
+			.sidebar-item { margin:10px 0;font-family:'Helvetica-Neue', Arial, sans-serif;text-align:center;font-size:12px;color:rgba(255,255,255,0.5); }
+			.sidebar-button { opacity:0.5;width:36px;height:36px;margin:5px auto;cursor:pointer;box-sizing:content-box;border:2px solid transparent;border-radius:10px;color:white;font-size:12px;font-weight:400;line-height:38px; }
+			.sidebar-item:nth-child(1) .sidebar-button { background-color:#DC965A; }
+			.sidebar-item:nth-child(2) .sidebar-button { background-color:#A9E4EF; }
+			.sidebar-item:nth-child(3) .sidebar-button { background-color:#A288E3; }
+			.sidebar-item:nth-child(4) .sidebar-button { background-color:#7A306C; }
+			.sidebar-item:nth-child(5) .sidebar-button { background-color:#81F495; }
+			.sidebar-item:nth-child(6) .sidebar-button { background-color:#FF6978; }
+			.sidebar-item:nth-child(7) .sidebar-button { background-color:#FFED66; }
+			.sidebar-item:nth-child(8) .sidebar-button { background-color:#00CECB; }
+			.sidebar-item .sidebar-button:hover { box-shadow: 0 0 0 4pt rgba(255,255,255,0.5);border-color:transparent; }
+			.sidebar-item.active .sidebar-button { opacity:1;color:black; }
+			.sidebar-item.new-session .sidebar-button { background-color:white;color:black;border-color:transparent;box-shadow:none;font-size:28px; }
+			.sidebar-item.new-session:hover { opacity:0.75; }
+
+			.maincontent { position:absolute;top:0;left:64px;right:0;bottom:0; }
+			.chrome-tab-group { position:absolute;top:0;left:0;right:0;bottom:0; }
+			.chrome-tab-group.hide { visibility:hidden }
+			.chrome-tabs { border-radius:0 !important; }
+			.chrome-tabs-new-tab { position:absolute;top:0;right:0;width:42px;height:42px;cursor:pointer;overflow:hidden;text-align:center;color:white;font-size:22px;line-height:36px; }
+			.content-container { position:absolute;top:42px;left:0;right:0;bottom:0;background-color:white; }
 			.content-container>webview { position:absolute;left:0;top:0;right:0;bottom:0;border:none; }
 			.content-container>webview.hide { visibility:hidden }
+
+			.tabinfo { position:absolute;top:0;left:64px;right:0;bottom:0;background-color:#f9fafc;z-index:99;padding:25vh 0 0 33vw; }
+			.tabinfo.hide { display:none; }
+			.tabinfo>h1, .tabinfo>h5, .tabinfo>p { margin:0;padding:0;color:#232f3e;opacity:0.25; }
+			.tabinfo>input { min-width:33%;border:none;background-color:transparent;font-family:'Helvetica-Neue', Arial, sans-serif;font-size:32px;outline:none;border-bottom:2px dashed #232f3e;opacity:0.5; }
+			.tabinfo>button { opacity:0.75;padding:12px;min-width:148px;min-height:48px;background-color:#DC965A;color:white;border:none;border-radius:8px;font-size:16px;font-weight:600;outline:none; }
+			.tabinfo>button:hover { opacity:1; }
+			.colors { max-width:320px;padding:30px 0; }
+			.colorbox { opacity:0.65;display:inline-block;width:40px;height:40px;margin:15px 15px 0 0;border-radius:8px;border:5px solid transparent; }
+			.colorbox.active { opacity:1;border-color:rgba(255,255,255,0.5); }
+			.colorbox:hover { opacity:1 }
+			.colorbox:nth-child(1) { background-color:#DC965A; }
+			.colorbox:nth-child(2) { background-color:#A9E4EF; }
+			.colorbox:nth-child(3) { background-color:#A288E3; }
+			.colorbox:nth-child(4) { background-color:#7A306C; }
+			.colorbox:nth-child(5) { background-color:#81F495; }
+			.colorbox:nth-child(6) { background-color:#FF6978; }
+			.colorbox:nth-child(7) { background-color:#FFED66; }
+			.colorbox:nth-child(8) { background-color:#00CECB; }
+
+			::placeholder { color: rgba(0,0,0,0.1);opacity: 1; }
+			:-ms-input-placeholder { color: rgba(0,0,0,0.1); }
+			::-ms-input-placeholder { color: rgba(0,0,0,0.1); }
 		</style>
 	</head>
 	<body>
-		<div class="chrome-tabs chrome-tabs-dark-theme">
-			<div class="chrome-tabs-content"></div>
-			<div class="chrome-tabs-new-tab">+</div>
-			<div class="chrome-tabs-bottom-bar"></div>
+		<div class="sidebar">
+			<div class="accounts">
+				<div class="sidebar-item template"><div class="sidebar-button"></div><span class="sidebar-shortcut">⌘1</span></div>
+			</div>
+			<div class="sidebar-item new-session"><div class="sidebar-button">+</div></div>
 		</div>
-		<div class="content-container">
-			
+		<div class="maincontent">
+			<div class="chrome-tab-group">
+				<div class="chrome-tabs chrome-tabs-dark-theme">
+					<div class="chrome-tabs-content"></div>
+					<div class="chrome-tabs-new-tab">+</div>
+					<div class="chrome-tabs-bottom-bar"></div>
+				</div>
+				<div class="content-container">
+				</div>
+			</div>
 		</div>
-		
-		<!--<div class="etabs-tabgroup">
-			<div class="etabs-tabs"></div>
-			<div class="etabs-buttons"></div>
+		<div class="tabinfo">
+			<h1>Add new account</h1>
+			<h5>Enter an name for your account. Initials or very short names work best.</h5>
+			<br/><br/>
+			<input id="new-account-name" placeholder="NAME" />
+			<div id="new-account-color" class="colors">
+				<div class="colorbox active" data-color="#DC965A"></div>
+				<div class="colorbox" data-color="#A9E4EF"></div>
+				<div class="colorbox" data-color="#A288E3"></div>
+				<div class="colorbox" data-color="#7A306C"></div>
+				<div class="colorbox" data-color="#81F495"></div>
+				<div class="colorbox" data-color="#FF6978"></div>
+				<div class="colorbox" data-color="#FFED66"></div>
+				<div class="colorbox" data-color="#00CECB"></div>
+			</div>
+			<button id="new-account-go">ADD</button>
 		</div>
-		<div class="etabs-views"></div>-->
 
 		<script>
 			function guid() {
-				function s4() {
-					return Math.floor((1 + Math.random()) * 0x10000)
-						.toString(16)
-						.substring(1);
-				}
-				return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
-					s4() + '-' + s4() + s4() + s4();
+				function s4() { return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1); }
+				return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
 			}
 
+			var accounts = {};
+
 			window.addEventListener('load', function(){
-				var windowUid = guid();
-				var el = document.querySelector('.chrome-tabs');
-				var chromeTabs = new ChromeTabs();
-				chromeTabs.init(el, { tabOverlapDistance: 14, minWidth: 45, maxWidth: 243 });
+				// Detach chrome tab group template
+				var tabGroupTemplate = $('.chrome-tab-group').detach();
+				var sidebarButtonTemplate = $('.sidebar-item.template').detach().removeClass('template');
 
-				el.addEventListener('activeTabChange', ({ detail }) => {
-					console.log('Active tab changed', detail.tabEl)
-					$('.content-container').children().addClass('hide');
-					$(detail.tabEl.webview).removeClass('hide');
-				});
-				el.addEventListener('tabAdd', ({ detail }) => {
-					console.log('Tab added', detail.tabEl)
-					detail.tabEl.webview = document.createElement('webview');
-					//detail.tabEl.webview.setAttribute('name', 'aws-page-disable-x-frame-options');
-					//detail.tabEl.webview.setAttribute('sandbox', 'allow-scripts allow-same-origin');
-					detail.tabEl.webview.partition = windowUid;
-					detail.tabEl.webview.disablewebsecurity = true;
-					detail.tabEl.webview.webpreferences = "allowRunningInsecureContent";
-					detail.tabEl.webview.setAttribute('src', "https://signin.aws.amazon.com/signin?client_id=arn%3Aaws%3Aiam%3A%3A015428540659%3Auser%2Fhomepage&redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fconsole%2Fhome%3Fstate%3DhashArgs%2523%26isauthcode%3Dtrue&page=resolve");
-					detail.tabEl.webview.style.width = '100%';
-					detail.tabEl.webview.style.height = '100%';
-					detail.tabEl.webview.addEventListener('page-title-updated', (e) => {
-						console.log('Guest page title: '+e.title);
-						detail.tabEl.querySelector('.chrome-tab-title').textContent = e.title;
+				function createTabGroup(groupid, name, color) {
+					var groupUid = groupid||guid();
+
+					// Initialize group storage
+					accounts[groupUid] = {};
+					var account = accounts[groupUid];
+
+					// Create the tab group
+					account.tabGroup = tabGroupTemplate.clone();
+					var el = account.tabGroup.find('.chrome-tabs')[0];// document.querySelector('.chrome-tabs');
+					$('.maincontent').children().addClass('hide');
+					$('.maincontent').append(account.tabGroup);
+					account.chromeTabs = new ChromeTabs();
+					account.chromeTabs.init(el, { tabOverlapDistance: 14, minWidth: 45, maxWidth: 243 });
+					el.account = account;
+
+					// Create sidebar button
+					account.sidebarItem = sidebarButtonTemplate.clone();
+					$('.accounts').append(account.sidebarItem);
+					$('.sidebar-item').removeClass('active');
+					account.sidebarItem.addClass('active');
+					account.sidebarItem.find('.sidebar-button').text(name);
+					account.sidebarItem.find('.sidebar-button').css({'background-color': color});
+					account.sidebarItem.find('.sidebar-shortcut').text( '⌘'+$('.accounts').children().length );
+					account.sidebarItem.on('click', function() {
+						$('.maincontent').children().addClass('hide');
+						$(account.tabGroup).removeClass('hide');
+						$('.sidebar-item').removeClass('active');
+						$(account.sidebarItem).addClass('active');
+						$('.tabinfo').addClass('hide');
 					});
-					$('.content-container').children().addClass('hide');
-					$(detail.tabEl.webview).removeClass('hide');
-					$('.content-container').append(detail.tabEl.webview);
-				});
-				el.addEventListener('tabRemove', ({ detail }) => {
-					console.log('Tab removed', detail.tabEl);
-					$('.content-container').empty();
-					delete( detail.tabEl.webview );
-					detail.tabEl.webview = null;
-				});
 
-				$('.chrome-tabs-new-tab').click(function() {
-					chromeTabs.addTab({
-						title: 'AWS',
-						favicon: 'images/aws.png',
+					el.addEventListener('activeTabChange', ({ detail }) => {
+						console.log('Active tab changed', detail.tabEl)
+						$(account.tabGroup).find('.content-container').children().addClass('hide');
+						$(detail.tabEl.webview).removeClass('hide');
 					});
-				});
-
-				chromeTabs.addTab({
-					title: 'AWS',
-					favicon: 'images/aws.png',
-				});
-
-				// Keyboard shortcuts
-				document.onkeyup=function(e){
-					var e = e || window.event; // for IE to cover IEs window event-object
-					if(e.altKey && e.which == 84) {
-						chromeTabs.addTab({
-							title: 'AWS',
-							favicon: 'images/aws.png',
+					el.addEventListener('tabAdd', ({ detail }) => {
+						console.log('Tab added', detail.tabEl)
+						detail.tabEl.webview = document.createElement('webview');
+						detail.tabEl.webview.partition = groupUid;
+						detail.tabEl.webview.disablewebsecurity = true;
+						detail.tabEl.webview.webpreferences = "allowRunningInsecureContent";
+						detail.tabEl.webview.setAttribute('src', "https://us-west-2.console.aws.amazon.com/console/home?region=us-west-2#");
+						detail.tabEl.webview.style.width = '100%';
+						detail.tabEl.webview.style.height = '100%';
+						detail.tabEl.webview.addEventListener('page-title-updated', (e) => {
+							console.log('Guest page title: '+e.title);
+							detail.tabEl.querySelector('.chrome-tab-title').textContent = e.title;
 						});
-						return false;
-					}
+						$(account.tabGroup).find('.content-container').children().addClass('hide');
+						$(detail.tabEl.webview).removeClass('hide');
+						$(account.tabGroup).find('.content-container').append(detail.tabEl.webview);
+					});
+					el.addEventListener('tabRemove', ({ detail }) => {
+						console.log('Tab removed', detail.tabEl);
+						$(account.tabGroup).find('.content-container').children().addClass('hide');
+						delete( detail.tabEl.webview );
+						detail.tabEl.webview = null;
+
+						debugger;
+						var newTab = el.querySelector('.chrome-tab-current');
+						if ( newTab && newTab.webview ) {
+							account.chromeTabs.setCurrentTab(newTab);
+							$(newTab.webview).removeClass('hide');
+						}
+					});
+
+					$(el).find('.chrome-tabs-new-tab').click(function() {
+						debugger;
+						el.account.chromeTabs.addTab({ title: 'AWS', favicon: 'images/aws.png' });
+					});
+
+					account.chromeTabs.addTab({ title: 'AWS', favicon: 'images/aws.png' });
+
+					return account;
 				}
-			});
 
-			// chromeTabs.removeTab(el.querySelector('.chrome-tab-current'));
+				// Create new tab group on click
+				$('.sidebar-item.new-session').click(function() {
+					//createTabGroup(null, 'AWS', '#12ABCD');
+					$('#new-account-name').val('');
+					$($('#new-account-color').children().removeClass('active').get(0)).addClass('active');
+					$('.tabinfo').removeClass('hide');
+				});
 
-
-				/*const TabGroup = require('electron-tabs');
-				const dragula = require("dragula");
-				//require = function() { return {}; };
-				let tabGroup = new TabGroup({
-					ready: function (tabGroup) {
-						dragula([tabGroup.tabContainer], {
-							direction: "horizontal"
-						});
-					},
-					newTab: {
-						title: '',
-						src: 'https://signin.aws.amazon.com/signin?client_id=arn%3Aaws%3Aiam%3A%3A015428540659%3Auser%2Fhomepage&redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fconsole%2Fhome%3Fstate%3DhashArgs%2523%26isauthcode%3Dtrue&page=resolve',
-						closable: true,
-						iconURL: 'images/aws.png',
-						visible: true,
-						active: true,
+				$('#new-account-color').find('.colorbox').on('click', function() {
+					$('.colorbox').removeClass('active');
+					$(this).addClass('active');
+					$('#new-account-name').css({'color':$('.colorbox.active').attr('data-color')});
+					$('#new-account-go').css({'background-color':$('.colorbox.active').attr('data-color')});
+				});
+				$('#new-account-go').on('click', function() {
+					$('#new-account-name').css({'color':$('.colorbox.active').attr('data-color')});
+					$('#new-account-go').css({'background-color':$('.colorbox.active').attr('data-color')});
+					debugger;
+					if ( $('#new-account-name').val().length ) {
+						var account = createTabGroup(null, $('#new-account-name').val(), $('.colorbox.active').attr('data-color'));
+						$('.maincontent').children().addClass('hide');
+						$(account.tabGroup).removeClass('hide');
+						$('.sidebar-item').removeClass('active');
+						$(account.sidebarItem).addClass('active');
+						$('.tabinfo').addClass('hide');
 					}
 				});
-				tabGroup.addTab({
-						title: 'AWS',
-						src: 'https://signin.aws.amazon.com/signin?client_id=arn%3Aaws%3Aiam%3A%3A015428540659%3Auser%2Fhomepage&redirect_uri=https%3A%2F%2Fconsole.aws.amazon.com%2Fconsole%2Fhome%3Fstate%3DhashArgs%2523%26isauthcode%3Dtrue&page=resolve',
-						closable: false,
-						iconURL: 'images/aws.png',
-						visible: true,
-						active: true,
-				});*/
-				/*tabGroup.addTab({
-						title: "Electron",
-						src: "http://electron.atom.io",
-						visible: true,
-						active: true
-				});*/
+
+				const ipc = require('electron').ipcRenderer;
+				ipc.on('message', (event, message) => {
+					if ( message && message.action ) {
+						var currTab = $('.chrome-tab-group:not(.hide) .chrome-tab.chrome-tab-current').get(0);
+						switch( message.action ) {
+							case 'newTab': currTab.account.chromeTabs.addTab({ title: 'AWS', favicon: 'images/aws.png', }); break;
+							case 'closeTab': currTab.account.chromeTabs.removeTab(currTab); break;
+							case 'addAccount': $('.sidebar-item.new-session').click(); break;
+							case 'setAccount1': $($('.accounts').children().get(0)).click(); break;
+							case 'setAccount2': $($('.accounts').children().get(1)).click(); break;
+							case 'setAccount3': $($('.accounts').children().get(2)).click(); break;
+							case 'setAccount4': $($('.accounts').children().get(3)).click(); break;
+							case 'setAccount5': $($('.accounts').children().get(4)).click(); break;
+							case 'setAccount6': $($('.accounts').children().get(5)).click(); break;
+							case 'setAccount7': $($('.accounts').children().get(6)).click(); break;
+							case 'setAccount8': $($('.accounts').children().get(7)).click(); break;
+							case 'setAccount9': $($('.accounts').children().get(8)).click(); break;
+							default:
+								break;
+						}
+					}
+				});
+			});
 		</script>
 		
 	</body>
