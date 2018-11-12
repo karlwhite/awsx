@@ -100,6 +100,8 @@
 		</div>
 
 		<script>
+			const ipc = require('electron').ipcRenderer;
+
 			function guid() {
 				function s4() { return Math.floor((1 + Math.random()) * 0x10000).toString(16).substring(1); }
 				return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
@@ -116,8 +118,10 @@
 					var groupUid = groupid||guid();
 
 					// Initialize group storage
-					accounts[groupUid] = {};
+					accounts[groupUid] = accounts[groupUid]||{};
 					var account = accounts[groupUid];
+					account.name = name;
+					account.color = color;
 
 					// Create the tab group
 					account.tabGroup = tabGroupTemplate.clone();
@@ -152,7 +156,7 @@
 					el.addEventListener('tabAdd', ({ detail }) => {
 						console.log('Tab added', detail.tabEl)
 						detail.tabEl.webview = document.createElement('webview');
-						detail.tabEl.webview.partition = groupUid;
+						detail.tabEl.webview.partition = "persist:"+groupUid;
 						detail.tabEl.webview.disablewebsecurity = true;
 						detail.tabEl.webview.webpreferences = "allowRunningInsecureContent";
 						detail.tabEl.webview.setAttribute('src', "https://us-west-2.console.aws.amazon.com/console/home?region=us-west-2#");
@@ -161,6 +165,9 @@
 						detail.tabEl.webview.addEventListener('page-title-updated', (e) => {
 							console.log('Guest page title: '+e.title);
 							detail.tabEl.querySelector('.chrome-tab-title').textContent = e.title;
+
+							// Trigger save of account session
+							window.getAccounts();
 						});
 						$(account.tabGroup).find('.content-container').children().addClass('hide');
 						$(detail.tabEl.webview).removeClass('hide');
@@ -169,23 +176,25 @@
 					el.addEventListener('tabRemove', ({ detail }) => {
 						console.log('Tab removed', detail.tabEl);
 						$(account.tabGroup).find('.content-container').children().addClass('hide');
+						$(detail.tabEl.webview).detach();
 						delete( detail.tabEl.webview );
 						detail.tabEl.webview = null;
 
-						debugger;
 						var newTab = el.querySelector('.chrome-tab-current');
 						if ( newTab && newTab.webview ) {
 							account.chromeTabs.setCurrentTab(newTab);
 							$(newTab.webview).removeClass('hide');
 						}
+
+						// Trigger save of account session
+						window.getAccounts();
 					});
 
 					$(el).find('.chrome-tabs-new-tab').click(function() {
-						debugger;
 						el.account.chromeTabs.addTab({ title: 'AWS', favicon: 'images/aws.png' });
 					});
 
-					account.chromeTabs.addTab({ title: 'AWS', favicon: 'images/aws.png' });
+					if ( !groupid ) account.chromeTabs.addTab({ title: 'AWS', favicon: 'images/aws.png' });
 
 					return account;
 				}
@@ -207,7 +216,6 @@
 				$('#new-account-go').on('click', function() {
 					$('#new-account-name').css({'color':$('.colorbox.active').attr('data-color')});
 					$('#new-account-go').css({'background-color':$('.colorbox.active').attr('data-color')});
-					debugger;
 					if ( $('#new-account-name').val().length ) {
 						var account = createTabGroup(null, $('#new-account-name').val(), $('.colorbox.active').attr('data-color'));
 						$('.maincontent').children().addClass('hide');
@@ -218,26 +226,72 @@
 					}
 				});
 
-				const ipc = require('electron').ipcRenderer;
-				ipc.on('message', (event, message) => {
-					if ( message && message.action ) {
-						var currTab = $('.chrome-tab-group:not(.hide) .chrome-tab.chrome-tab-current').get(0);
-						switch( message.action ) {
-							case 'newTab': currTab.account.chromeTabs.addTab({ title: 'AWS', favicon: 'images/aws.png', }); break;
-							case 'closeTab': currTab.account.chromeTabs.removeTab(currTab); break;
-							case 'addAccount': $('.sidebar-item.new-session').click(); break;
-							case 'setAccount1': $($('.accounts').children().get(0)).click(); break;
-							case 'setAccount2': $($('.accounts').children().get(1)).click(); break;
-							case 'setAccount3': $($('.accounts').children().get(2)).click(); break;
-							case 'setAccount4': $($('.accounts').children().get(3)).click(); break;
-							case 'setAccount5': $($('.accounts').children().get(4)).click(); break;
-							case 'setAccount6': $($('.accounts').children().get(5)).click(); break;
-							case 'setAccount7': $($('.accounts').children().get(6)).click(); break;
-							case 'setAccount8': $($('.accounts').children().get(7)).click(); break;
-							case 'setAccount9': $($('.accounts').children().get(8)).click(); break;
-							default:
-								break;
+				window.getAccounts = function() {
+					//return JSON.stringify(accounts);
+					// Update active tabs
+					for ( var groupId in accounts ) {
+						var tabs = $(accounts[groupId].tabGroup).find('.content-container').children();
+						accounts[groupId].tabs = [];
+						for ( var idx in tabs ) {
+							if ( tabs[idx].src ) accounts[groupId].tabs.push( tabs[idx].src );
 						}
+					}
+
+					ipc.send('message', {action: 'getAccounts', accounts: accounts});
+
+					// TMP
+					//window.setAccounts(accounts);
+				}
+				window.setAccounts = function(oldAccounts) {
+					$('.maincontent').empty();
+					$('.sidebar .accounts').empty();
+					if ( Object.keys(oldAccounts).length ) $('.tabinfo').addClass('hide');
+					for ( var groupId in oldAccounts ) {
+						var account = oldAccounts[groupId];
+						delete( account.chromeTabs );
+						delete( account.tabGroup );
+						delete( account.sidebarItem );
+						createTabGroup(groupId, account.name, account.color);
+						var newAccount = accounts[groupId];
+
+						// Recreate tabs
+						for ( var idx in oldAccounts[groupId].tabs ) {
+							newAccount.chromeTabs.addTab({ title: 'AWS', favicon: 'images/aws.png' });
+							var tab = $(newAccount.tabGroup).find('.content-container').children().get(idx);
+							tab.src = oldAccounts[groupId].tabs[idx];
+						}
+					}
+				}
+
+				ipc.on('message', (event, message) => {
+					try {
+						if ( message && message.action ) {
+							var currTab = $('.chrome-tab-group:not(.hide) .chrome-tab.chrome-tab-current').closest('.chrome-tabs').get(0);
+							if ( currTab ) {
+								var actualTab = currTab.querySelector('.chrome-tab-current');
+								switch( message.action ) {
+									case 'newTab': currTab.account.chromeTabs.addTab({ title: 'AWS', favicon: 'images/aws.png', }); break;
+									case 'closeTab': currTab.account.chromeTabs.removeTab(currTab); break;
+									case 'reloadTab': if ( actualTab ) actualTab.webview.reload(); break;
+									case 'addAccount': $('.sidebar-item.new-session').click(); break;
+									case 'setAccount1': $($('.accounts').children().get(0)).click(); break;
+									case 'setAccount2': $($('.accounts').children().get(1)).click(); break;
+									case 'setAccount3': $($('.accounts').children().get(2)).click(); break;
+									case 'setAccount4': $($('.accounts').children().get(3)).click(); break;
+									case 'setAccount5': $($('.accounts').children().get(4)).click(); break;
+									case 'setAccount6': $($('.accounts').children().get(5)).click(); break;
+									case 'setAccount7': $($('.accounts').children().get(6)).click(); break;
+									case 'setAccount8': $($('.accounts').children().get(7)).click(); break;
+									case 'setAccount9': $($('.accounts').children().get(8)).click(); break;
+									case 'getAccounts': window.getAccounts(); break;
+									case 'setAccounts': window.setAccounts(message.accounts); break;
+									default:
+										break;
+								}
+							}
+						}
+					} catch(e) {
+						console.error(e);
 					}
 				});
 			});

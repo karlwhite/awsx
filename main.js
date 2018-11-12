@@ -3,6 +3,7 @@ const electron = require('electron')
 const app = electron.app
 const Menu = electron.Menu
 const globalShortcut = electron.globalShortcut
+const ipcMain = electron.ipcMain
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
 
@@ -31,8 +32,9 @@ function guid() {
 }
 
 function createWindow() {
-  var protocol = electron.protocol;
+  //var protocol = electron.protocol;
   let { width, height } = prefs.get('windowBounds');
+  let accounts = prefs.get('accounts');
   
   // Create the browser window.
   let thisWindow = new BrowserWindow({show: false, width: width, height: height, fullscreenable: true, webPreferences: {/*sandbox: false, contextIsolation: true,*/ partition:'persist:'+windowList.length, devTools: true, nodeIntegration: true, webSecurity: false, allowRunningInsecureContent: true, allowDisplayingInsecureContent: true} });
@@ -92,6 +94,14 @@ function createWindow() {
           { label: "Switch to 8", accelerator: "Cmd+8", click() { thisWindow.webContents.send('message', {'action': 'setAccount8'}); } },
           { label: "Switch to 9", accelerator: "Cmd+9", click() { thisWindow.webContents.send('message', {'action': 'setAccount9'}); } },
       ]
+    },
+    {
+      label: "Debug",
+      submenu: [
+        { label: 'Console', accelerator: "CommandOrControl+D", click() { mainWindow.webContents.toggleDevTools(); } },
+        { label: 'Reload', accelerator: "CommandOrControl+R", click() { thisWindow.webContents.send('message', {'action': 'newTab'}); } },
+        { label: 'Reload Tab', accelerator: "CommandOrControl+R", click() { thisWindow.webContents.send('message', {'action': 'reloadTab'}); } },
+      ]
     }
   ];
   menu = Menu.buildFromTemplate(template);
@@ -111,6 +121,20 @@ function createWindow() {
   
   // Open the DevTools.
   //thisWindow.webContents.openDevTools();
+
+  // Restore previous window state
+  if ( accounts ) {
+    setTimeout( function() {
+      mainWindow.webContents.send('message', {'action': 'setAccounts', 'accounts': accounts});
+    }, 1000);
+  }
+
+  // Periodically save window state
+  setInterval( function() {
+  //setTimeout( function() {
+    mainWindow.webContents.send('message', {'action': 'getAccounts'});
+  }, 30000);
+  //}, 3000);
 
   // Emitted when the window is closed.
   thisWindow.on('closed', function () {
@@ -150,13 +174,27 @@ app.on('ready', function () {
   globalShortcut.register('CommandOrControl+W', () => {
     mainWindow.webContents.send('message', {'action': 'closeTab'});
   });*/
-  globalShortcut.register('CommandOrControl+D', () => {
+  /*globalShortcut.register('CommandOrControl+D', () => {
     mainWindow.webContents.openDevTools();
-  });
+  });*/
+});
+
+// Listen for sync message from renderer process
+ipcMain.on('message', (event, message) => {  
+  switch( message.action ) {
+    case 'getAccounts': {
+      var accounts = message.accounts;
+      prefs.set('accounts', accounts);
+      //debugger;
+    }
+  }
 });
 
 // Quit when all windows are closed.
 app.on('window-all-closed', function () {
+  // When quiting, store account status
+  //var accounts = mainWindow.webContents.send('message', {'action': 'getAccounts'});
+
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   //if (process.platform !== 'darwin') {
